@@ -40,13 +40,17 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android build components
+      - name: Prepare Android SDK (already installed on GitHub runners)
         run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+          set -e
+          export ANDROID_HOME="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          SDKM="$(ls -1 "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | sort -V | tail -n1)"
+          if [ -z "$SDKM" ]; then echo "::error::sdkmanager not found in $ANDROID_HOME"; exit 1; fi
+          echo "Using $SDKM"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
+          yes | "$SDKM" --sdk_root="$ANDROID_HOME" --licenses > /dev/null || true
+          "$SDKM" --sdk_root="$ANDROID_HOME" "platforms;android-34" "build-tools;34.0.0" "platform-tools"
 
       - name: Set up Gradle 8.7
         uses: gradle/actions/setup-gradle@v4
@@ -72,6 +76,7 @@ jobs:
       - name: Create Gradle wrapper and validate build
         working-directory: ${{ env.PROJ }}
         run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
           gradle wrapper --gradle-version 8.7 --no-daemon
           ./gradlew --version
           ./gradlew help --no-daemon
