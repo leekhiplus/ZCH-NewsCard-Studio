@@ -50,12 +50,12 @@ jobs:
           echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
           echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
           yes | "$SDKM" --sdk_root="$ANDROID_HOME" --licenses > /dev/null || true
-          "$SDKM" --sdk_root="$ANDROID_HOME" "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+          "$SDKM" --sdk_root="$ANDROID_HOME" "platforms;android-36" "build-tools;36.0.0" "platform-tools"
 
-      - name: Set up Gradle 8.7
+      - name: Set up Gradle 9.7.1
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: 8.7
+          gradle-version: 9.7.1
 
       - name: Bundle Urdu font (Noto Nastaliq Urdu) if not already present
         working-directory: ${{ env.PROJ }}
@@ -77,7 +77,7 @@ jobs:
         working-directory: ${{ env.PROJ }}
         run: |
           echo "sdk.dir=$ANDROID_HOME" > local.properties
-          gradle wrapper --gradle-version 8.7 --no-daemon
+          gradle wrapper --gradle-version 9.7.1 --no-daemon
           ./gradlew --version
           ./gradlew help --no-daemon
 
